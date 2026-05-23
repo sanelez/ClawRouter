@@ -1489,10 +1489,13 @@ const IMAGE_PRICING: Record<string, { default: number; sizes?: Record<string, nu
 // Video pricing (must match server's VIDEO_MODELS in blockrun/src/lib/models.ts).
 // pricePerSecond is the BASE rate (no margin). estimateVideoCost applies the
 // same 5% margin server-side uses, so values land on blockrun's quote.
-// Seedance is token-priced upstream — base $/sec = 10128 tokens/sec × $/1M tokens.
+// Seedance is token-priced upstream — base $/sec = tokensPerSec × $/1M tokens.
+// As of blockrun e6dc1f1 (2026-05-22) the videos route defaults Seedance to
+// resolution=720p + generate_audio=true(t2v) / false(i2v), which doubles the
+// per-second token count from 10128 → 20256 vs. the older 480p baseline.
 // pricePerSecondImageInput, when set, is used if the request body has image_url
-// (image-to-video tokenizes ~40% cheaper on 2.0 variants; 1.5 Pro is flat because
-// its audio-toggle semantics aren't yet wired to a request param).
+// (image-to-video tokenizes ~40% cheaper on 2.0 variants; 1.5 Pro is flat
+// because token360 prices its text and image inputs at the same per-M rate).
 const VIDEO_PRICING: Record<
   string,
   {
@@ -1502,15 +1505,15 @@ const VIDEO_PRICING: Record<
   }
 > = {
   "xai/grok-imagine-video": { pricePerSecond: 0.05, defaultDurationSeconds: 8 },
-  "bytedance/seedance-1.5-pro": { pricePerSecond: 0.04375, defaultDurationSeconds: 5 },
+  "bytedance/seedance-1.5-pro": { pricePerSecond: 0.0875, defaultDurationSeconds: 5 },
   "bytedance/seedance-2.0-fast": {
-    pricePerSecond: 0.11343,
-    pricePerSecondImageInput: 0.06684,
+    pricePerSecond: 0.22687,
+    pricePerSecondImageInput: 0.13369,
     defaultDurationSeconds: 5,
   },
   "bytedance/seedance-2.0": {
-    pricePerSecond: 0.14179,
-    pricePerSecondImageInput: 0.0871,
+    pricePerSecond: 0.28358,
+    pricePerSecondImageInput: 0.1742,
     defaultDurationSeconds: 5,
   },
 };

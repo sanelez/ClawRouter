@@ -733,11 +733,14 @@ export const PARTNER_SERVICES: PartnerServiceDefinition[] = [
     name: "Video Generation",
     partner: "BlockRun",
     category: "Image & Video",
-    shortDescription: "Grok Imagine + Seedance, 5–10s",
+    shortDescription: "Grok Imagine + Seedance, 5–10s (720p + audio on t2v)",
     description:
       "Generate a short video (5–10s) via xai/grok-imagine-video or bytedance/seedance-1.5-pro " +
-      "(default, cheapest) / seedance-2.0-fast / seedance-2.0. Async — upstream polling takes " +
-      "30–120 seconds. Returns a local http://localhost:8402/videos/<file>.mp4 URL.",
+      "(default, cheapest) / seedance-2.0-fast / seedance-2.0. Seedance defaults to 720p with " +
+      "synced audio for text-to-video. Seedance 2.0 variants accept optional " +
+      "`real_face_asset_id` (`ta_xxxxxxxx`) for BytePlus RealFace character consistency — " +
+      "mutually exclusive with `image_url`. Async — upstream polling takes 30–120 seconds. " +
+      "Returns a local http://localhost:8402/videos/<file>.mp4 URL.",
     proxyPath: "/videos/generations",
     method: "POST",
     params: [
@@ -761,16 +764,33 @@ export const PARTNER_SERVICES: PartnerServiceDefinition[] = [
         description: "Clip length in seconds. Supported: 5, 8, 10. Default depends on model.",
         required: false,
       },
+      {
+        name: "image_url",
+        type: "string",
+        description:
+          "Optional first-frame image URL for image-to-video. Cheaper per-token on 2.0 variants. " +
+          "Cannot be combined with `real_face_asset_id`.",
+        required: false,
+      },
+      {
+        name: "real_face_asset_id",
+        type: "string",
+        description:
+          "Optional BytePlus RealFace asset id (format `ta_xxxxxxxx`) for real-person character " +
+          "consistency across frames. Seedance 2.0 Fast / 2.0 Pro only — rejected on 1.5 Pro. " +
+          "Asset ids come from token360's H5 verification flow.",
+        required: false,
+      },
     ],
     pricing: {
-      perUnit: "$0.03–$0.30",
+      perUnit: "$0.05–$0.30",
       unit: "second",
-      minimum: "$0.15 (seedance-1.5-pro 5s)",
-      maximum: "$3.00 (seedance-2.0 10s)",
+      minimum: "$0.42 (grok-imagine-video 8s) / $0.46 (seedance-1.5-pro 5s)",
+      maximum: "$2.98 (seedance-2.0 10s text-to-video)",
     },
     example: {
       input: { model: "bytedance/seedance-1.5-pro", prompt: "a cat waving", duration_seconds: 5 },
-      description: "Generate a 5-second Seedance video",
+      description: "Generate a 5-second Seedance video (720p + audio defaults)",
     },
   },
   // ---------------------------------------------------------------------------

@@ -261,16 +261,16 @@ curl -X POST http://localhost:8402/v1/videos/generations \
 
 | Model                         | Provider           | 5s text-to-video | 5s image-to-video | Duration              |
 | ----------------------------- | ------------------ | ---------------- | ----------------- | --------------------- |
-| `bytedance/seedance-1.5-pro`  | ByteDance Seedance | ~$0.23           | ~$0.23 (flat)     | 5s default, up to 10s |
-| `bytedance/seedance-2.0-fast` | ByteDance Seedance | ~$0.60           | ~$0.35            | 5s default, up to 10s |
-| `bytedance/seedance-2.0`      | ByteDance Seedance | ~$0.74           | ~$0.46            | 5s default, up to 10s |
+| `bytedance/seedance-1.5-pro`  | ByteDance Seedance | ~$0.46           | ~$0.46 (flat)     | 5s default, up to 10s |
+| `bytedance/seedance-2.0-fast` | ByteDance Seedance | ~$1.19           | ~$0.70            | 5s default, up to 10s |
+| `bytedance/seedance-2.0`      | ByteDance Seedance | ~$1.49           | ~$0.91            | 5s default, up to 10s |
 | `xai/grok-imagine-video`      | xAI Grok Imagine   | ~$0.42 (8s)      | n/a               | 8s default            |
 
-Seedance is **token-priced upstream** (~10,128 tokens/sec at 480p, token360's default — ClawRouter doesn't expose a resolution param). The quote is `duration × tokens/sec × $/1M tokens × 1.05 margin`. Image-to-video on 2.0 variants uses a discounted per-token rate (~40% cheaper) when `image_url` is supplied; 1.5 Pro is flat because its audio-generation toggle isn't yet wired to a request param. Calls block for 30–120s while the upstream polls the job. Seedance 2.0 Fast typically returns in 60–80s; 2.0 Pro trades latency for quality.
+Seedance is **token-priced upstream** at ~20,256 tokens/sec — the blockrun videos route now defaults Seedance to `resolution=720p` with `generate_audio=true` for text-to-video (2× the per-second token count of the older 480p baseline; audio is included in that rate). The quote is `duration × tokens/sec × $/1M tokens × 1.05 margin`. Image-to-video on 2.0 variants uses a discounted per-token rate (~40% cheaper) when `image_url` is supplied; 1.5 Pro is flat because token360 prices its text and image inputs at the same per-M rate. Calls block for 30–120s while the upstream polls the job. Seedance 2.0 Fast typically returns in 60–80s; 2.0 Pro trades latency for quality.
 
 ### BytePlus RealFace (Seedance 2.0 only)
 
-For real-person character consistency across frames, pass `real_face_asset_id` (format `ta_xxxxxxxx`) on **2.0 Fast** or **2.0 Pro**. Asset IDs come from token360's Asset UI after H5 face verification. Cannot be combined with `image_url` (both seed the first frame — pick one). Pricing is unchanged.
+For real-person character consistency across frames, pass `real_face_asset_id` (format `ta_xxxxxxxx`) on **2.0 Fast** or **2.0 Pro**. Asset IDs come from token360's Asset UI after H5 face verification — see blockrun's [/docs/video/real-person-ip](https://blockrun.ai/docs/video/real-person-ip) for the enrollment walkthrough. Cannot be combined with `image_url` (both seed the first frame — pick one). Pricing is unchanged.
 
 ```bash
 curl -X POST http://localhost:8402/v1/videos/generations \

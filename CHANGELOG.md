@@ -4,6 +4,19 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.195 — May 23, 2026
+
+- **Seedance 720p + audio defaults aligned with blockrun re-enable.** Blockrun took the three Seedance entries offline on 2026-05-21 (`available:false`, returning `400 "not currently available"` on POST) after user reports of (1) 480p output without audio, visibly worse than JiMeng on the same prompt, and (2) the missing real-person enrollment flow. On 2026-05-22 (commit `e6dc1f1`) they re-enabled all three with `resolution=720p` + `generate_audio=true(t2v) / false(i2v)` defaults in the videos route, doubling the per-second token count from `10128` → `20256`. ClawRouter's `VIDEO_PRICING` table was sized for the 480p baseline, so the local `estimateVideoCost` was under-reporting wallet `logUsage` by ~2× for the past day (payment is fully server-dictated, so no overcharge — telemetry only, per `feedback_telemetry_vs_payment`). Updated `src/proxy.ts`:
+  - 1.5 Pro: `$0.04375/sec` → `$0.0875/sec` (flat — no image discount; token360 prices text and image inputs at the same per-M rate).
+  - 2.0 Fast: text `$0.11343/sec` → `$0.22687/sec`, image `$0.06684/sec` → `$0.13369/sec`.
+  - 2.0 Pro: text `$0.14179/sec` → `$0.28358/sec`, image `$0.08710/sec` → `$0.17420/sec`.
+  - Header comment refreshed to call out the 720p+audio default and the doubled tokens/sec.
+- **5s default-call telemetry now lands at:** 1.5 Pro ~$0.46 (was $0.23), 2.0 Fast ~$1.19 text / ~$0.70 image (was $0.60 / $0.35), 2.0 Pro ~$1.49 text / ~$0.91 image (was $0.74 / $0.46). All within ~1% of blockrun's quote at the new 720p settings.
+- **Discovery surfaces refreshed.** `src/partners/registry.ts` `video_generation` entry now advertises the 720p+audio defaults, declares `image_url` + `real_face_asset_id` as explicit params (both already worked via raw body passthrough — this just makes them discoverable to agents and the `/v1/partners` listing), and updates the pricing display to the new `$0.46–$2.98` range. `README.md` pricing table + explanatory paragraph and `skills/clawrouter/SKILL.md` headline rewritten in the same shape — the old "480p, ~10,128 tokens/sec, $0.23–$0.74 / 5s" copy from v0.12.194 is now stale on every surface.
+- **No proxy whitelist or routing change.** Seedance was already in the video proxy path; the re-enable on blockrun's side restored POST without ClawRouter needing to flip any flag. Aliases (`seedance`, `seedance-1.5`, `seedance-2-fast`, `seedance-2`) and the `/videogen` slash command continue to work as before.
+
+---
+
 ## v0.12.194 — May 18, 2026
 
 - **Seedance video pricing aligned with blockrun's token-priced model.** Last week blockrun replaced the flat per-second Seedance pricing with `duration × tokens/sec × $/1M tokens × 1.05 margin` after a verification call against `bytedance/seedance-2.0-fast` measured 10,128 tokens/sec at 480p (token360's default, not the 720p we'd guessed). The old ClawRouter `VIDEO_PRICING` table was both wrong-shaped and ~3–4× off on the high side. Updated `src/proxy.ts`:
