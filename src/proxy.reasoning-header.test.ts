@@ -51,7 +51,7 @@ describe("sanitizeHeaderValue", () => {
     const result = classifyByRules(prompt, undefined, 64, DEFAULT_ROUTING_CONFIG.scoring);
     const reasoning = `score=${result.score.toFixed(2)} | ${result.signals.join(", ")}`;
     // Precondition: the repro really does produce non-ASCII reasoning
-    expect(reasoning).toMatch(/[^\x00-\x7F]/);
+    expect(Array.from(reasoning).some((ch) => (ch.codePointAt(0) ?? 0) > 0x7f)).toBe(true);
     expect(() => validateHeaderValue("x-clawrouter-reasoning", reasoning)).toThrow();
 
     const sanitized = sanitizeHeaderValue(reasoning);
@@ -64,9 +64,12 @@ describe("debugHeadersEnabledFromEnv", () => {
     expect(debugHeadersEnabledFromEnv({})).toBe(true);
   });
 
-  it.each(["0", "false", "off", "FALSE", "Off"])("is disabled by CLAWROUTER_DEBUG_HEADERS=%s", (v) => {
-    expect(debugHeadersEnabledFromEnv({ CLAWROUTER_DEBUG_HEADERS: v })).toBe(false);
-  });
+  it.each(["0", "false", "off", "FALSE", "Off"])(
+    "is disabled by CLAWROUTER_DEBUG_HEADERS=%s",
+    (v) => {
+      expect(debugHeadersEnabledFromEnv({ CLAWROUTER_DEBUG_HEADERS: v })).toBe(false);
+    },
+  );
 
   it("treats other values as enabled", () => {
     expect(debugHeadersEnabledFromEnv({ CLAWROUTER_DEBUG_HEADERS: "1" })).toBe(true);
