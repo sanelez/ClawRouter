@@ -4,6 +4,19 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.211 — June 18, 2026
+
+Add Z.AI's new flagship **GLM-5.2** (launched 2026-06-16), aligning with BlockRun's source-of-truth catalog (`zai/glm-5.2`, first in the GLM lineup).
+
+### GLM-5.2 added
+
+- **`zai/glm-5.2` added to the catalog** — 1M-token context (262K max output), paid per-token at $1.40/$4.40 (same rate as GLM-5.1, cached $0.26). Z.AI's newest flagship: beats GPT-5.5 on long-horizon coding at a fraction of the cost. Categories: chat, reasoning, coding.
+- **Bare `glm` alias retargeted** GLM-5.1 → **GLM-5.2** (bare alias always tracks the newest flagship). New `glm-5.2` explicit shorthand added. `glm-5.1` explicit pin preserved as the 200K-context predecessor (identical price, so no cost-stability tradeoff — kept for behavioral parity).
+- **Picker visibility** — added to `top-models.json` (head of the GLM group), so it surfaces in the OpenClaw `/model` picker and the allowlist sync on next provider refresh. README Mid-Range pricing table updated.
+- No router-tier changes: GLM models are accessed by alias/direct call, not wired into any auto/eco/premium tier chain — GLM-5.2 follows the same path. All 619 tests pass.
+
+---
+
 ## v0.12.210 — June 16, 2026
 
 Align the free tier with BlockRun's 2026-06-14 free-tier refresh (`blockrun` commit `5817ecd`: self-healing health gate + probe-verified NVIDIA lineup). BlockRun found only 7 of 17 "available" free models were actually being served and replaced the stale manual redirect list with a per-model circuit breaker.

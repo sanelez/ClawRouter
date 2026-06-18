@@ -433,6 +433,7 @@ No Surf account, no API key — settles directly to Surf's Base treasury in USDC
 | openai/o3-mini              |     $1.10 |      $4.40 |    $0.0028 | 128K    | reasoning, tools                          |
 | openai/o4-mini              |     $1.10 |      $4.40 |    $0.0028 | 128K    | reasoning, tools                          |
 | google/gemini-2.5-pro       |     $1.25 |     $10.00 |    $0.0056 | 1M      | reasoning, vision, tools                  |
+| zai/glm-5.2                 |     $1.40 |      $4.40 |    $0.0029 | 1M      | reasoning, coding, tools (flagship)       |
 | zai/glm-5.1                 |     $1.40 |      $4.40 |    $0.0029 | 200K    | reasoning, tools (promo ended 2026-06-05) |
 | xai/grok-4.3                |     $1.50 |      $4.00 |    $0.0028 | 1M      | reasoning, vision, agentic, tools         |
 | xai/grok-build-0.1          |     $1.50 |      $3.00 |    $0.0023 | 256K    | agentic coding, tools                     |

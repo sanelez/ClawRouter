@@ -58381,6 +58381,7 @@ var top_models_default = [
   "free/llama-4-maverick",
   "free/seed-oss-36b",
   "free/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "zai/glm-5.2",
   "zai/glm-5.1",
   "zai/glm-5",
   "zai/glm-5-turbo"
@@ -58618,9 +58619,12 @@ var MODEL_ALIASES = {
   "minimax-m2.7": "minimax/minimax-m2.7",
   "minimax-m2.5": "minimax/minimax-m2.5",
   // Z.AI GLM-5
-  glm: "zai/glm-5.1",
+  glm: "zai/glm-5.2",
+  // bare alias tracks newest flagship (launched 2026-06-16)
+  "glm-5.2": "zai/glm-5.2",
   "glm-5": "zai/glm-5",
   "glm-5.1": "zai/glm-5.1",
+  // explicit pin: 200K-ctx predecessor, same price
   "glm-5-turbo": "zai/glm-5-turbo",
   // Routing profile aliases (common variations)
   "auto-router": "auto",
@@ -59613,6 +59617,19 @@ var BLOCKRUN_MODELS = [
     vision: true
   },
   // Z.AI GLM-5 Models
+  {
+    // Launched 2026-06-16 — Z.AI's newest flagship. 1M-token context,
+    // beats GPT-5.5 on long-horizon coding at a fraction of the cost.
+    // Paid per-token at $1.40/$4.40 (same as glm-5.1, cached $0.26).
+    id: "zai/glm-5.2",
+    name: "GLM-5.2",
+    version: "5.2",
+    inputPrice: 1.4,
+    outputPrice: 4.4,
+    contextWindow: 1e6,
+    maxOutput: 262144,
+    toolCalling: true
+  },
   {
     // Launch promo (flat $0.001/call) ended 2026-06-05 — backend now bills
     // glm-5.1 per-token at $1.40/$4.40 (billingMode: "paid").
