@@ -16,13 +16,18 @@ import { TOP_MODELS } from "./top-models.js";
  * Users can type `/model claude` instead of `/model blockrun/anthropic/claude-sonnet-4-6`.
  */
 export const MODEL_ALIASES: Record<string, string> = {
-  // Claude - flagship opus is 4.8; sonnet stays at 4.6
+  // Claude - flagship opus is 4.8; bare sonnet stays at 4.6 (sonnet-5 is opt-in
+  // via explicit `sonnet-5` — not promoted to the bare alias pending benchmarks)
   claude: "anthropic/claude-sonnet-4.6",
   "br-sonnet": "anthropic/claude-sonnet-4.6",
   sonnet: "anthropic/claude-sonnet-4.6",
   "sonnet-4": "anthropic/claude-sonnet-4.6",
   "sonnet-4.6": "anthropic/claude-sonnet-4.6",
   "sonnet-4-6": "anthropic/claude-sonnet-4.6",
+  // Sonnet 5 — newest Sonnet, near-Opus quality at Sonnet cost (opt-in)
+  "sonnet-5": "anthropic/claude-sonnet-5",
+  "sonnet-5.0": "anthropic/claude-sonnet-5",
+  "sonnet-5-0": "anthropic/claude-sonnet-5",
   // Explicit 4.5 pins (distinct model upstream, same pricing as 4.6)
   "sonnet-4.5": "anthropic/claude-sonnet-4.5",
   "sonnet-4-5": "anthropic/claude-sonnet-4.5",
@@ -680,6 +685,23 @@ export const BLOCKRUN_MODELS: BlockRunModel[] = [
     outputPrice: 15.0,
     contextWindow: 200000,
     maxOutput: 64000,
+    reasoning: true,
+    vision: true,
+    agentic: true,
+    toolCalling: true,
+  },
+  {
+    // Newest Sonnet — near-Opus coding/agentic quality at Sonnet cost. Same
+    // price as 4.6 ($3/$15) but 1M ctx / 128K out / adaptive thinking. Kept as
+    // an opt-in distinct model (bare `sonnet`/`claude` still resolve to 4.6);
+    // primaries not promoted pending benchmarks. BlockRun fallback → sonnet-4.6.
+    id: "anthropic/claude-sonnet-5",
+    name: "Claude Sonnet 5",
+    version: "5",
+    inputPrice: 3.0,
+    outputPrice: 15.0,
+    contextWindow: 1000000,
+    maxOutput: 128000,
     reasoning: true,
     vision: true,
     agentic: true,

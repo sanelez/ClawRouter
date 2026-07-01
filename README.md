@@ -452,6 +452,7 @@ No Surf account, no API key — settles directly to Surf's Base treasury in USDC
 
 | Model                       | Input $/M | Output $/M | ~$/request | Context | Features                          |
 | --------------------------- | --------: | ---------: | ---------: | ------- | --------------------------------- |
+| anthropic/claude-sonnet-5   |     $3.00 |     $15.00 |    $0.0090 | 1M      | reasoning, vision, agentic, tools |
 | anthropic/claude-sonnet-4.6 |     $3.00 |     $15.00 |    $0.0090 | 200K    | reasoning, vision, agentic, tools |
 | xai/grok-3                  |     $3.00 |     $15.00 |    $0.0090 | 131K    | reasoning, tools                  |
 | anthropic/claude-opus-4.8   |     $5.00 |     $25.00 |    $0.0150 | 1M      | reasoning, vision, agentic, tools |

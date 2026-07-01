@@ -4,6 +4,20 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.217 — June 30, 2026
+
+Model registry alignment: add **`anthropic/claude-sonnet-5`**, BlockRun's newest Sonnet — near-Opus coding/agentic quality at Sonnet cost.
+
+### New model: Claude Sonnet 5
+
+- BlockRun added `anthropic/claude-sonnet-5` (source-of-truth `blockrun/src/lib/models.ts`): **$3/$15 — identical to Sonnet 4.6** but with **1M context / 128K output / adaptive thinking / vision**, described as "near-Opus coding/agentic quality at Sonnet cost." BlockRun routes it direct-Anthropic with `fallbackModel: claude-sonnet-4.6`.
+- **ClawRouter** (`src/models.ts`): added to `BLOCKRUN_MODELS` (flows into `OPENCLAW_MODELS` automatically) and to the `/model` picker (`src/top-models.json`).
+- **Aliases:** explicit `sonnet-5` / `sonnet-5.0` / `sonnet-5-0` shorthands added. **Bare `sonnet` / `claude` deliberately stay on Sonnet 4.6** — Sonnet 5 is opt-in, mirroring BlockRun's own alias map (which does not repoint the shorthand) and the v0.12.167 "add-distinct, don't silently upgrade the bare alias" precedent.
+- **Routing** (`src/router/config.ts`): inserted as an in-family fallback wherever Sonnet 4.6 appears (auto COMPLEX quality fallback, gpt-5.3-codex MEDIUM, opus COMPLEX, plus the three Sonnet-primary chains — auto REASONING, agentic COMPLEX, agentic REASONING). **No primaries promoted** — promotion awaits benchmarks (Sonnet 5 is brand-new, not yet in BlockRun's Bedrock map), matching the v0.12.168 gpt-5.5 fallback-only pattern. Cost-neutral in every chain ($3/$15 = Sonnet 4.6).
+- README pricing table + `skills/clawrouter/SKILL.md` model list refreshed. All 645 tests pass.
+
+---
+
 ## v0.12.216 — June 30, 2026
 
 Security + dependency hygiene: clear all 22 Dependabot alerts (**`npm audit` → 0 vulnerabilities**) and fix a latent missing-dependency bug in the upstream-proxy feature.

@@ -59096,6 +59096,7 @@ var top_models_default = [
   "free",
   "eco",
   "premium",
+  "anthropic/claude-sonnet-5",
   "anthropic/claude-sonnet-4.6",
   "anthropic/claude-opus-4.8",
   "anthropic/claude-opus-4.7",
@@ -59147,13 +59148,18 @@ var TOP_MODELS = Object.freeze(loadTopModels());
 
 // src/models.ts
 var MODEL_ALIASES = {
-  // Claude - flagship opus is 4.8; sonnet stays at 4.6
+  // Claude - flagship opus is 4.8; bare sonnet stays at 4.6 (sonnet-5 is opt-in
+  // via explicit `sonnet-5` — not promoted to the bare alias pending benchmarks)
   claude: "anthropic/claude-sonnet-4.6",
   "br-sonnet": "anthropic/claude-sonnet-4.6",
   sonnet: "anthropic/claude-sonnet-4.6",
   "sonnet-4": "anthropic/claude-sonnet-4.6",
   "sonnet-4.6": "anthropic/claude-sonnet-4.6",
   "sonnet-4-6": "anthropic/claude-sonnet-4.6",
+  // Sonnet 5 — newest Sonnet, near-Opus quality at Sonnet cost (opt-in)
+  "sonnet-5": "anthropic/claude-sonnet-5",
+  "sonnet-5.0": "anthropic/claude-sonnet-5",
+  "sonnet-5-0": "anthropic/claude-sonnet-5",
   // Explicit 4.5 pins (distinct model upstream, same pricing as 4.6)
   "sonnet-4.5": "anthropic/claude-sonnet-4.5",
   "sonnet-4-5": "anthropic/claude-sonnet-4.5",
@@ -59742,6 +59748,23 @@ var BLOCKRUN_MODELS = [
     outputPrice: 15,
     contextWindow: 2e5,
     maxOutput: 64e3,
+    reasoning: true,
+    vision: true,
+    agentic: true,
+    toolCalling: true
+  },
+  {
+    // Newest Sonnet — near-Opus coding/agentic quality at Sonnet cost. Same
+    // price as 4.6 ($3/$15) but 1M ctx / 128K out / adaptive thinking. Kept as
+    // an opt-in distinct model (bare `sonnet`/`claude` still resolve to 4.6);
+    // primaries not promoted pending benchmarks. BlockRun fallback → sonnet-4.6.
+    id: "anthropic/claude-sonnet-5",
+    name: "Claude Sonnet 5",
+    version: "5",
+    inputPrice: 3,
+    outputPrice: 15,
+    contextWindow: 1e6,
+    maxOutput: 128e3,
     reasoning: true,
     vision: true,
     agentic: true,
@@ -76911,6 +76934,8 @@ var DEFAULT_ROUTING_CONFIG = {
         // 1,348ms, IQ 41
         "google/gemini-2.5-pro",
         // 1,294ms
+        "anthropic/claude-sonnet-5",
+        // near-Opus quality at Sonnet cost, 1M ctx
         "anthropic/claude-sonnet-4.6",
         // 2,110ms, IQ 52 — quality fallback
         "deepseek/deepseek-chat",
@@ -77028,6 +77053,7 @@ var DEFAULT_ROUTING_CONFIG = {
         // 60% retention, good coding capability
         "google/gemini-2.5-pro",
         "xai/grok-4-0709",
+        "anthropic/claude-sonnet-5",
         "anthropic/claude-sonnet-4.6"
       ]
     },
@@ -77045,6 +77071,8 @@ var DEFAULT_ROUTING_CONFIG = {
         // in-family hot swap (identical cost to 4.8)
         "anthropic/claude-opus-4.6",
         // in-family hot swap
+        "anthropic/claude-sonnet-5",
+        // Sonnet-tier drop-down, near-Opus quality
         "anthropic/claude-sonnet-4.6",
         "xai/grok-4-0709",
         // 503-resistant flagship
@@ -77067,6 +77095,8 @@ var DEFAULT_ROUTING_CONFIG = {
       primary: "anthropic/claude-sonnet-4.6",
       // 2,110ms, $3/$15 - best for reasoning/instructions
       fallback: [
+        "anthropic/claude-sonnet-5",
+        // in-family hot swap — same cost, adaptive thinking, 1M ctx
         "anthropic/claude-opus-4.8",
         // Newest flagship Opus w/ adaptive thinking
         "anthropic/claude-opus-4.7",
@@ -77121,6 +77151,8 @@ var DEFAULT_ROUTING_CONFIG = {
       // correlate with Anthropic outages (everyone falls back together).
       // Prefer 503-resistant providers first.
       fallback: [
+        "anthropic/claude-sonnet-5",
+        // in-family hot swap — same cost, near-Opus agentic quality
         "anthropic/claude-opus-4.8",
         // Newest flagship Opus — in-family hot swap
         "anthropic/claude-opus-4.7",
@@ -77147,6 +77179,8 @@ var DEFAULT_ROUTING_CONFIG = {
       primary: "anthropic/claude-sonnet-4.6",
       // 2,110ms — strong tool use + reasoning
       fallback: [
+        "anthropic/claude-sonnet-5",
+        // in-family hot swap — same cost, adaptive thinking
         "anthropic/claude-opus-4.8",
         // Newest flagship Opus w/ adaptive thinking
         "anthropic/claude-opus-4.7",
