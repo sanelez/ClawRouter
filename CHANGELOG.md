@@ -4,6 +4,30 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.218 — July 9, 2026
+
+ERC-8021 builder-code attribution on x402 payments (with a preserve-existing-codes fix from the OpenClaw side), plus the `/model` picker now honors `top-models.json` order.
+
+### Builder-code service attribution on every x402 payment ([#198](https://github.com/BlockRunAI/ClawRouter/pull/198), thanks [@KillerQueen-Z](https://github.com/KillerQueen-Z))
+
+- New `src/builder-code.ts`: every x402 payment ClawRouter signs is stamped with BlockRun's CDP-registered ERC-8021 Schema 2 service code (`builder-code.info.s: ["bc_5hucoh0l"]`) via an `onAfterPaymentCreation` hook in `proxy.ts`, so BlockRun-originated traffic is attributed on-chain. The CDP facilitator reads `builder-code.info.s` from the payload and encodes it into settlement calldata — no CBOR/encoding client-side. Any app code (`a`) the server echoes back in its 402 is preserved. Safe to stamp post-creation: the EIP-712 signature covers the authorization, not the extensions.
+- **Note:** this feature merged to main on July 5 but was **not** in the npm `v0.12.217` package (that release shipped from the sonnet-5 branch before #198 landed) — v0.12.218 is the first npm release that stamps builder codes.
+
+### Preserve pre-existing service codes when stamping ([#199](https://github.com/BlockRunAI/ClawRouter/issues/199) → [#200](https://github.com/BlockRunAI/ClawRouter/pull/200), thanks [@steipete](https://github.com/steipete))
+
+- **Bug (caught pre-npm-release):** `withBuilderCodeServiceCode()` replaced any existing `builder-code.info.s` array with `[BLOCKRUN_SERVICE_CODE]`. ERC-8021 defines `s` as an array of related service codes — if another layer (e.g. OpenClaw itself) had already added its attribution, ClawRouter erased it before settlement. Found by Peter Steinberger while validating the ClawRouter bump in `openclaw/crabpot`.
+- **Fix:** valid pre-existing string entries in `info.s` are retained (non-string junk filtered out), BlockRun's code is appended only when absent, and the function still returns a fresh array without mutating the payment challenge. 3 regression tests added (existing attribution retained, partially malformed array, idempotent re-stamp).
+
+### `/model` picker now follows `top-models.json` order ([#201](https://github.com/BlockRunAI/ClawRouter/pull/201), thanks [@0xCheetah1](https://github.com/0xCheetah1))
+
+- `VISIBLE_OPENCLAW_MODELS` was built by _filtering_ `OPENCLAW_MODELS` through the `top-models.json` set, so the picker showed registry declaration order, not the curated order. It is now built by _mapping_ `top-models.json` → registry entries, so `src/top-models.json` alone controls both membership **and** order.
+- Curated list reordered: routing profiles first (`auto`, `premium`, `eco`, `free`), then flagship paid models grouped by vendor (Anthropic → OpenAI → Google → xAI → Z.AI → MiniMax → Moonshot → DeepSeek), free NVIDIA models last. Merge resolution keeps v0.12.217's `anthropic/claude-sonnet-5` in the Anthropic block (after the Opus pair, before Sonnet 4.6).
+- New regression test asserts the visible picker IDs match `top-models.json` exactly (length + element order), which also guards against dangling IDs in the JSON that have no registry entry.
+
+Full suite **654 passed**, typecheck + lint + Prettier + build clean.
+
+---
+
 ## v0.12.217 — June 30, 2026
 
 Model registry alignment: add **`anthropic/claude-sonnet-5`**, BlockRun's newest Sonnet — near-Opus coding/agentic quality at Sonnet cost.
