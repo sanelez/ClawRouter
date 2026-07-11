@@ -202,6 +202,30 @@ Full prediction-market toolbox spanning **Polymarket, Kalshi, Limitless, Opinion
 
 Pricing: `$0.001` per market-data call, `$0.005` per analytics / search / wallet call. See the `predexon` skill for the full endpoint reference.
 
+### Prediction-Market Trading (Polymarket) — REAL MONEY
+
+Beyond reading odds, ClawRouter can **place, manage, and redeem real bets** on
+Polymarket (CLOB V2, Polygon) via the `blockrun_polymarket` tool. Unlike every
+other tool here it is **not** an HTTP-proxy wrapper — it runs a local trading
+engine that signs CLOB orders (EIP-712) with the SAME ClawRouter wallet that
+pays for LLM calls, and posts them to Polymarket (through BlockRun's Tokyo
+egress by default, so it works out of the box in geoblocked regions).
+
+| Tool                  | What it does                                                                                                 | Cost                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| `blockrun_polymarket` | `action:` setup / fund / buy / sell / cancel / orders / positions / redeem / withdraw. One multiplexed tool. | Free tool; bets spend pUSD |
+
+- **Funds**: bets spend **pUSD** in a gasless Polygon deposit-wallet vault
+  derived from your key; `action:"fund"` moves your **Base USDC → pUSD** gaslessly
+  (x402, $0.01 fee, non-custodial). Winnings `withdraw` back to native USDC on Base.
+- **Safety**: `confirm:true` is **hard-required** to place/sign anything (omit →
+  dry-run preview); per-order cap `POLYMARKET_MAX_BET_USD` (default $25) + optional
+  `POLYMARKET_MAX_SESSION_USD`. Bets do NOT draw from the x402 API budget.
+- **Zero config**: no Polymarket account, API keys, or gas token — first `setup`
+  bootstraps everything from your wallet. Discover token IDs with the
+  `blockrun_predexon_*` data tools first. See the **`polymarket-trading` skill**
+  for the golden rules and end-to-end flow.
+
 ### Crypto Data (Surf) — skill-only integration
 
 Surf is a unified crypto data API with **84 endpoints across 13 domains**: CEX/DEX markets, on-chain SQL over 80+ ClickHouse tables (Ethereum, Base, Arbitrum, BSC, TRON, HyperEVM, Tempo), 100M+ labeled wallets, prediction markets (Polymarket + Kalshi), social/CT mindshare, news, project/DeFi metrics, token analytics, unified search, VC fund intelligence. The killer feature is `POST /surf/onchain/sql` — ad-hoc SELECT against the warehouse, no indexer required.

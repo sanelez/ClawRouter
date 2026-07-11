@@ -4,6 +4,27 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.220 — July 10, 2026
+
+Direct Polymarket **betting** — ported from blockrun-mcp v0.30.0's `blockrun_polymarket` tool. ClawRouter could already read prediction-market odds (`blockrun_predexon_*`); now it can place, manage, and redeem **real-money** bets on Polymarket (CLOB V2, Polygon), signed locally by the same wallet that pays for LLM calls.
+
+### New `blockrun_polymarket` tool (REAL MONEY)
+
+- Unlike every other ClawRouter tool it is **not** an HTTP-proxy wrapper — it runs a local trading engine (`src/polymarket/`, ~2,650 lines ported from blockrun-mcp) that signs CLOB V2 orders (EIP-712) and posts them to Polymarket through BlockRun's Tokyo egress relay by default (so it works out of the box in geoblocked regions; every order is still signed locally, the relay can't move funds).
+- One multiplexed tool, `action:` = `setup / fund / buy / sell / cancel / orders / positions / redeem / withdraw`.
+- **Signer = ClawRouter's own EVM wallet** (`~/.openclaw/blockrun/wallet.key`, or `BLOCKRUN_WALLET_KEY`) — the same key that pays x402 LLM fees. A chain-agnostic private key pays API fees on Base _and_ authorizes bets on Polygon. This is the one real adaptation from the blockrun-mcp source (which used `~/.blockrun/.session`); everything else is a faithful port. Polymarket state (L2/builder creds, deposit-wallet vault) is stored under `~/.openclaw/blockrun/` alongside the wallet.
+- **Funds**: bets spend **pUSD** in a gasless Polygon deposit-wallet vault; `action:"fund"` moves the user's **Base USDC → pUSD** gaslessly (x402 `POST /v1/polymarket/fund`, $0.01 fee, non-custodial via the Polymarket bridge); winnings `withdraw` back to native USDC on Base.
+- **Safety** (unchanged from source): `confirm:true` is **hard-required** to place/sign anything (omit → dry-run preview); per-order cap `POLYMARKET_MAX_BET_USD` (default $25, fail-closed on garbage), optional `POLYMARKET_MAX_SESSION_USD`. Betting is deliberately NOT gated on the x402 API budget ledger — bets are the user's own pUSD, a different asset in a different chain.
+
+### Wiring, deps, docs
+
+- Registered in `src/index.ts` alongside the partner tools via `api.registerTool()` (a local-execute tool, not a proxy entry). New `blockrun_predexon_*` → `blockrun_polymarket` discover-then-trade loop.
+- New deps: `@polymarket/clob-client-v2@1.0.8`, `@polymarket/builder-relayer-client`, `@polymarket/builder-signing-sdk`, `axios`, `https-proxy-agent`, `@blockrun/llm` (for the gasless funding path). `@solana/kit` stayed deduped at v5.5.1 (no version split).
+- New `polymarket-trading` skill (golden rules, mental model, end-to-end flow) + a "Prediction-Market Trading" section in the headline `clawrouter` skill.
+- 12 new tests (tool shape, fail-closed cap parsing, underscore-header proxy bridge, no-network trade-gating). Full suite: 667 passing.
+
+---
+
 ## v0.12.219 — July 10, 2026
 
 Add OpenAI's GPT-5.6 family (GA 2026-07-09) — three fixed tiers Sol/Terra/Luna — and route generic aliases to the stable Terra tier rather than the flaky Sol tier ([#202](https://github.com/BlockRunAI/ClawRouter/issues/202), thanks [@0xCheetah1](https://github.com/0xCheetah1)).

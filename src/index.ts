@@ -82,6 +82,7 @@ import { VERSION } from "./version.js";
 import { privateKeyToAccount } from "viem/accounts";
 import { getStats } from "./stats.js";
 import { buildPartnerTools, PARTNER_SERVICES } from "./partners/index.js";
+import { buildPolymarketTool } from "./polymarket/tool.js";
 import { createStatsCommand } from "./commands/stats.js";
 import { createExcludeCommand } from "./commands/exclude.js";
 import { BLOCKRUN_MCP_SERVER_NAME, removeManagedBlockrunMcpServerConfig } from "./mcp-config.js";
@@ -1777,9 +1778,13 @@ const plugin: OpenClawPluginDefinition = {
       for (const tool of partnerTools) {
         api.registerTool(tool);
       }
+      // blockrun_polymarket is a LOCAL trading tool (signs CLOB orders with the
+      // ClawRouter wallet key), not an HTTP-proxy partner tool — register it
+      // separately so real-money betting works out of the box.
+      api.registerTool(buildPolymarketTool());
       if (partnerTools.length > 0 && shouldLogRegistration) {
         api.logger.info(
-          `Registered ${partnerTools.length} partner tool(s): ${partnerTools.map((t) => t.name).join(", ")}`,
+          `Registered ${partnerTools.length} partner tool(s): ${partnerTools.map((t) => t.name).join(", ")}, blockrun_polymarket`,
         );
       }
     } catch (err) {
