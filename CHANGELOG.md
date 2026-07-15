@@ -4,6 +4,27 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.225 — July 14, 2026
+
+**The circular dependency is gone at the source**, plus `grok` now tracks the 4.5 flagship.
+
+### Fixed — `@blockrun/llm` was pinned to the version that caused the v0.12.220 disaster
+
+- We depended on `@blockrun/llm: ^2.11.0`, which resolves to **2.13.0 — and 2.13.0 lists `@blockrun/clawrouter` as a dependency.** That back-dependency is the root of the whole v0.12.220 collapse: it's what let `noExternal` inline a stale published copy of ourselves, bloat dist to 10.2MB, and collide the tsup banner into a load-time `SyntaxError`.
+- **`@blockrun/llm` removed it in 3.x** — `3.6.1`'s dependencies are just `bs58` and `viem`. We were pinned to the illness while the cure had already shipped. Bumped to `^3.6.1`: `npm ls @blockrun/clawrouter` now reports `(empty)`, and `node_modules/@blockrun/` contains only `llm`. Verified `BlockrunClient` and `createPaymentPayload` (our only imports, in `src/polymarket/fund.ts`) are unchanged across the 2→3 major.
+- The tsup alias and the smoke check's stale-copy assertion **stay** — they're now belt-and-braces that re-arm automatically if anything ever reintroduces the cycle.
+
+### Changed — `grok` now resolves to Grok 4.5 (deliberate cost increase)
+
+- `grok` moves from `xai/grok-4.3` to `xai/grok-4.5`, xAI's current flagship. **This costs more**: $2.50/$9.00 vs $1.50/$4.00, and upstream re-prices the whole request at $5/$18 once prompt tokens reach 200K. What it buys is a direct-xAI SKU — 4.3 is OpenRouter-only and silently drops Live Search while still charging for it.
+- Pin `grok-4.3` to opt out. Explicit `grok-4.5` / `grok-4-5` pins are unchanged. Now covered by a test so the tradeoff can't be flipped silently.
+
+### Also in this release
+
+- `scripts/update.sh` / `scripts/reinstall.sh` no longer wipe other plugins from `plugins.allow` (#207, thanks @0xCheetah1). The old cleanup kept a hardcoded list of bundled plugin IDs and **silently deleted every bare plugin ID not on it** — local/custom plugins, and any bundled plugin added to OpenClaw after that list was written. Now it removes only ClawRouter's own entries.
+
+---
+
 ## v0.12.224 — July 14, 2026
 
 **Two thirds of what we published was sourcemaps.** No behaviour change.

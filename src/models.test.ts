@@ -30,6 +30,16 @@ describe("resolveModelAlias", () => {
     expect(resolveModelAlias("gpt-5.6-luna")).toBe("openai/gpt-5.6-luna");
   });
 
+  // grok → 4.5 is a deliberate cost decision (4.5 is $2.50/$9.00 vs 4.3's $1.50/$4.00,
+  // and 2x above 200K prompt tokens). It buys a direct-xAI SKU; 4.3 is OpenRouter-only
+  // and silently drops Live Search. Pinning it so the tradeoff can't be flipped silently.
+  it("maps the generic grok shorthand to the 4.5 flagship, with 4.3 still pinnable", () => {
+    expect(resolveModelAlias("grok")).toBe("xai/grok-4.5");
+    expect(resolveModelAlias("grok-4.5")).toBe("xai/grok-4.5");
+    expect(resolveModelAlias("grok-4-5")).toBe("xai/grok-4.5");
+    expect(resolveModelAlias("grok-4.3")).toBe("xai/grok-4.3");
+  });
+
   it("resolves aliases even when sent with blockrun/ prefix", () => {
     expect(resolveModelAlias("blockrun/claude")).toBe("anthropic/claude-sonnet-4.6");
     expect(resolveModelAlias("blockrun/sonnet-4.6")).toBe("anthropic/claude-sonnet-4.6");

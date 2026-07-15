@@ -133,11 +133,12 @@ export const MODEL_ALIASES: Record<string, string> = {
   // xAI — grok-4.3 is the public flagship since 2026-06-04 (grok-3 and the
   // 4-fast/4-1-fast families are hidden in the backend catalog; direct full
   // IDs still resolve for pinned users).
-  // grok-4.5 (added upstream 2026-07-13) is xAI's flagship, but the generic `grok`
-  // shorthand stays on 4.3 for now: 4.5 costs $2.50/$9.00 vs 4.3's $1.50/$4.00 and
-  // re-prices the whole request at 2x above 200K prompt tokens. Promotion needs
-  // benchmarks we don't have — explicit pins let callers opt in today.
-  grok: "xai/grok-4.3",
+  // `grok` tracks xAI's current flagship, promoted to 4.5 on 2026-07-14 (added
+  // upstream 2026-07-13). This is a deliberate cost increase: 4.5 is $2.50/$9.00
+  // vs 4.3's $1.50/$4.00, and upstream re-prices the WHOLE request at $5/$18 once
+  // prompt tokens reach 200K. What it buys is a direct-xAI SKU — 4.3 is
+  // OpenRouter-only and silently drops Live Search. Pin `grok-4.3` to opt out.
+  grok: "xai/grok-4.5",
   "grok-4.5": "xai/grok-4.5",
   "grok-4-5": "xai/grok-4.5",
   "grok-4.3": "xai/grok-4.3",
