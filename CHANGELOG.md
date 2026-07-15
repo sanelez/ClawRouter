@@ -4,14 +4,18 @@ All notable changes to ClawRouter.
 
 ---
 
-## v0.12.221 — July 14, 2026
+## v0.12.222 — July 14, 2026
 
-**Hotfix: v0.12.220 was unusable — upgrade immediately.** Plus Claude Fable 5 and Grok 4.5.
+**Hotfix: v0.12.220 was unusable and v0.12.221 was only half-fixed — upgrade to this one.** Plus Claude Fable 5 and Grok 4.5.
+
+> v0.12.221 (published earlier the same day, superseded within the hour) renamed the banner identifier and added the models, which un-bricked the CLI. But it treated the symptom: it still inlined a stale copy of ClawRouter into its own bundle (10.2MB). v0.12.222 fixes the actual cause. If you are on v0.12.221 it works — but upgrade anyway.
 
 ### Fixed — v0.12.220 shipped a dead CLI (P0)
 
-- Every entrypoint in v0.12.220 threw `SyntaxError: Identifier '__cjs_createRequire' has already been declared` at load time: the tsup banner injected `__cjs_createRequire`, and a bundled dependency emits its own import under the exact same name into the same ESM scope. `clawrouter` would not start and `import "@blockrun/clawrouter"` would not load. Renamed the banner identifier to `__blockrun_createRequire` (thanks @0xCheetah1, spotted in #206).
-- **Why CI published it anyway**: the release pipeline runs `build && typecheck && test`, and none of those ever load `dist/`. Added `scripts/smoke-dist.mjs`, wired as `postbuild`, which imports `dist/index.js` and runs `dist/cli.js --version`. It fails the build (exit 1) on the broken bundle, so this class of defect can no longer reach npm.
+- Every entrypoint in v0.12.220 threw `SyntaxError: Identifier '__cjs_createRequire' has already been declared` at load time. `clawrouter` would not start, `import "@blockrun/clawrouter"` would not load, and `@blockrun/mcp` — which reaches us transitively through `@blockrun/llm` — could not boot either (thanks @0xCheetah1, spotted in #206; independently reported against `@blockrun/mcp`).
+- **Root cause — we bundled a stale copy of ourselves.** We and `@blockrun/llm` depend on each other, and `noExternal: [/.*/]` inlines it. v0.12.220's Polymarket port added `src/polymarket/fund.ts`, our first-ever `import` of `@blockrun/llm` — so its `import { route, ... } from "@blockrun/clawrouter"` resolved through `node_modules` to the **last published build of this package**, and esbuild inlined that entire stale bundle beside the one it was building. The old copy carried its own `__cjs_createRequire`, and esbuild cannot rename around a banner it never sees (banners are raw text injected _after_ bundling) — hence the collision. Fixed by aliasing that back-import to our own source so it dedupes into the graph: **dist drops 9.8MB → 7.4MB**, one ClawRouter again instead of two shadowing each other with separate module state. Left unfixed, each release would have inlined the previous one — ~20MB next publish.
+- Also renamed the banner identifier to `__blockrun_createRequire`, so no bundled dependency can ever collide with it again.
+- **Why CI published it anyway**: the release pipeline runs `build && typecheck && test`, and none of those ever load `dist/`. Added `scripts/smoke-dist.mjs`, wired as `postbuild`: it imports `dist/index.js`, runs `dist/cli.js --version`, and asserts no stale ClawRouter is inlined (a loadable bundle would otherwise hide that). It fails the build (exit 1), so this class of defect can no longer reach npm.
 
 ### Added — Claude Fable 5 (relisted upstream)
 

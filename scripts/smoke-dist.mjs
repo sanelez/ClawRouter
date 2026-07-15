@@ -8,11 +8,49 @@
 // Anything that only a real import would catch belongs here.
 
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const failures = [];
+
+// `noExternal: [/.*/]` bundles @blockrun/llm, which imports @blockrun/clawrouter back
+// (the two packages depend on each other). Without an alias pinning that back-import to
+// our own src, esbuild resolves it to whatever stale copy npm left in node_modules and
+// inlines the entire published bundle — a second, older ClawRouter shadowing this one,
+// with its own module state. That is what made v0.12.220 10MB and collided the banner.
+// The identifier rename cures the SyntaxError but NOT this; only the alias does, and a
+// loadable bundle would hide it. Assert the copy is absent, not merely harmless.
+// Deliberately generous: a canary for a whole extra copy of something (v0.12.220 hit
+// ~10MB that way), not a size budget. viem/ox/undici plus the Polymarket SDKs put the
+// honest floor near 7.5MB. If this trips, find the duplicate — only raise it once you
+// have confirmed the growth is real.
+const MAX_BUNDLE_BYTES = 12 * 1024 * 1024;
+
+for (const entry of ["index.js", "cli.js"]) {
+  const path = resolve(root, "dist", entry);
+  let source;
+  try {
+    source = readFileSync(path, "utf8");
+  } catch (err) {
+    failures.push(`dist/${entry} is unreadable: ${err.message}`);
+    continue;
+  }
+  if (source.includes("// node_modules/@blockrun/clawrouter/")) {
+    failures.push(
+      `dist/${entry} has a stale published ClawRouter inlined into it (esbuild module ` +
+        `marker "// node_modules/@blockrun/clawrouter/" is present) — the tsup alias for ` +
+        `the @blockrun/llm back-import is missing or broken.`,
+    );
+  }
+  if (source.length > MAX_BUNDLE_BYTES) {
+    failures.push(
+      `dist/${entry} is ${(source.length / 1024 / 1024).toFixed(1)}MB, over the ` +
+        `${MAX_BUNDLE_BYTES / 1024 / 1024}MB ceiling — likely a dependency inlined twice.`,
+    );
+  }
+}
 
 try {
   const lib = await import(`file://${resolve(root, "dist", "index.js")}`);
