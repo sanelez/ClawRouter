@@ -30,6 +30,25 @@ describe("resolveModelAlias", () => {
     expect(resolveModelAlias("gpt-5.6-luna")).toBe("openai/gpt-5.6-luna");
   });
 
+  it("maps bare Gemini Pro shorthands to the current Pro model", () => {
+    expect(resolveModelAlias("gemini-pro")).toBe("google/gemini-3.1-pro");
+    expect(resolveModelAlias("gemini-3-pro")).toBe("google/gemini-3.1-pro");
+    expect(resolveModelAlias("gemini-3.1-pro")).toBe("google/gemini-3.1-pro");
+    // The delisted -preview ids keep redirecting rather than 400ing
+    expect(resolveModelAlias("gemini-3-pro-preview")).toBe("google/gemini-3.1-pro");
+    expect(resolveModelAlias("google/gemini-3-pro-preview")).toBe("google/gemini-3.1-pro");
+  });
+
+  it("keeps the canonical Gemini Pro catalog entry unshadowed by the bare alias", () => {
+    // Bare alias keys are advertised as their own /v1/models rows; slash-prefixed
+    // ones shadow the catalog entry. `gemini-3.1-pro` is bare, so the real
+    // `google/gemini-3.1-pro` entry (with its true pricing) must survive.
+    const ids = OPENCLAW_MODELS.map((m) => m.id);
+    expect(ids).toContain("google/gemini-3.1-pro");
+    expect(ids).toContain("gemini-3.1-pro");
+    expect(BLOCKRUN_MODELS.some((m) => m.id === "google/gemini-3.1-pro")).toBe(true);
+  });
+
   // grok → 4.5 is a deliberate cost decision (4.5 is $2.50/$9.00 vs 4.3's $1.50/$4.00,
   // and 2x above 200K prompt tokens). It buys a direct-xAI SKU; 4.3 is OpenRouter-only
   // and silently drops Live Search. Pinning it so the tradeoff can't be flipped silently.

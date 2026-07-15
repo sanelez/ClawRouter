@@ -4,6 +4,22 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.226 — July 14, 2026
+
+Salvages the two pieces of #206 that were still worth having, with thanks to @0xCheetah1. The rest of that PR either shipped in v0.12.221–223 or was superseded by v0.12.225; it's closed with a full accounting.
+
+### Fixed — `clawrouter setup` couldn't find OpenClaw under a stripped PATH
+
+- Detection was `command -v openclaw` and nothing else. npm runs lifecycle scripts with a stripped PATH, so a perfectly working global install is invisible there and setup would exit telling the user to install what they already have. Verified: under `env -i PATH=/usr/bin:/bin`, `command -v openclaw` finds nothing while the install is right there.
+- Now falls back through `npm_config_prefix`, `npm root -g`, `~/.npm-global/bin`, `~/.local/bin`, and `/usr/local/bin`.
+
+### Added — bare Gemini Pro shorthands
+
+- `gemini-pro`, `gemini-3-pro`, and `gemini-3.1-pro` resolve to `google/gemini-3.1-pro`. `gemini-3-pro` was never a real id — the 3-series Pro shipped as `-preview`, then 3.1 — but callers reach for it anyway and got a 400.
+- These are bare aliases, so they're advertised as their own `/v1/models` rows while the canonical `google/gemini-3.1-pro` catalog entry (with its real pricing) stays unshadowed. Pinned by a test, since a slash-prefixed key would have shadowed it instead. `/v1/models` goes 205 → 208; no aliases lost.
+
+---
+
 ## v0.12.225 — July 14, 2026
 
 **The circular dependency is gone at the source**, plus `grok` now tracks the 4.5 flagship.

@@ -122,6 +122,12 @@ export const MODEL_ALIASES: Record<string, string> = {
   // redirect to its successor so pinned callers land on 3.1-pro, not an error.
   "google/gemini-3-pro-preview": "google/gemini-3.1-pro",
   "gemini-3-pro-preview": "google/gemini-3.1-pro",
+  // Bare Pro shorthands — `gemini-3-pro` was never a real id (the 3-series Pro
+  // shipped as the -preview above, then 3.1), but callers reach for it anyway.
+  // Point them at the current Pro instead of a 400. (Thanks @0xCheetah1, #206.)
+  "gemini-pro": "google/gemini-3.1-pro",
+  "gemini-3-pro": "google/gemini-3.1-pro",
+  "gemini-3.1-pro": "google/gemini-3.1-pro",
   gemini: "google/gemini-2.5-pro",
   flash: "google/gemini-2.5-flash",
   "gemini-3.1-pro-preview": "google/gemini-3.1-pro",

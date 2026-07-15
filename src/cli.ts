@@ -539,26 +539,62 @@ async function cmdCache(port: number): Promise<void> {
  */
 async function cmdSetup(): Promise<void> {
   const { execFileSync, execSync } = await import("node:child_process");
+  const { existsSync } = await import("node:fs");
+  const { dirname, join } = await import("node:path");
+  const { homedir } = await import("node:os");
   const { injectModelsConfig, injectAuthProfile, syncAgentModelCache, VISIBLE_OPENCLAW_MODELS } =
     await import("./index.js");
 
   console.log("🦞 ClawRouter setup\n");
 
-  // Step 1: detect OpenClaw on PATH
-  let openclawPath: string;
-  try {
-    openclawPath = execSync("command -v openclaw", {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-    if (!openclawPath) throw new Error("not found");
-    console.log(`  ✓ Found openclaw at ${openclawPath}`);
-  } catch {
+  // Step 1: locate OpenClaw. `command -v` alone is not enough — npm runs lifecycle
+  // scripts with a stripped PATH, so a perfectly working global install can be
+  // invisible here and setup would tell the user to install what they already have.
+  // Fall back to the standard global-bin locations. (Thanks @0xCheetah1, #206.)
+  const openclawPath = ((): string => {
+    const candidates: string[] = [];
+
+    try {
+      const onPath = execSync("command -v openclaw", {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      if (onPath) candidates.push(onPath);
+    } catch {
+      // Not on PATH — expected under npm lifecycle scripts.
+    }
+
+    if (process.env.npm_config_prefix) {
+      candidates.push(join(process.env.npm_config_prefix, "bin", "openclaw"));
+    }
+
+    try {
+      const npmRoot = execSync("npm root -g", {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      // npm root -g is <prefix>/lib/node_modules → the bin dir is <prefix>/bin
+      if (npmRoot) candidates.push(join(dirname(dirname(npmRoot)), "bin", "openclaw"));
+    } catch {
+      // npm may be unavailable in embedded runtimes.
+    }
+
+    candidates.push(
+      join(homedir(), ".npm-global", "bin", "openclaw"),
+      join(homedir(), ".local", "bin", "openclaw"),
+      "/usr/local/bin/openclaw",
+    );
+
+    return candidates.find((candidate) => existsSync(candidate)) ?? "";
+  })();
+
+  if (!openclawPath) {
     console.error("  ✗ openclaw not found on PATH");
     console.error("    Install OpenClaw first: npm install -g openclaw");
     console.error("    Then re-run: clawrouter setup");
     process.exit(1);
   }
+  console.log(`  ✓ Found openclaw at ${openclawPath}`);
 
   // Step 2: register as an OpenClaw plugin (writes plugins.entries.clawrouter).
   // OpenClaw 2026.5.2 added strict validation that may reject our config writes
